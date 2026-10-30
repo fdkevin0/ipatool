@@ -49,8 +49,9 @@ func purchaseCmdWithAppStore(appStore func() appstore.AppStore) *cobra.Command {
 
 				if errors.Is(lastErr, appstore.ErrPasswordTokenExpired) {
 					loginResult, err := store.Login(appstore.LoginInput{
-						Email:    acc.Email,
-						Password: acc.Password,
+						SecurityKey: acc.SecurityKey,
+						Email:       acc.Email,
+						Password:    acc.Password,
 					})
 					if err != nil {
 						return err

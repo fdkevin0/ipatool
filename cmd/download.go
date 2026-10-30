@@ -54,8 +54,9 @@ func downloadCmdWithAppStore(appStore func() appstore.AppStore) *cobra.Command {
 			return retry.Do(func() error {
 				if errors.Is(lastErr, appstore.ErrPasswordTokenExpired) {
 					loginResult, err := store.Login(appstore.LoginInput{
-						Email:    acc.Email,
-						Password: acc.Password,
+						SecurityKey: acc.SecurityKey,
+						Email:       acc.Email,
+						Password:    acc.Password,
 					})
 					if err != nil {
 						return err

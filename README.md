@@ -68,6 +68,25 @@ Use "ipatool [command] --help" for more information about a command.
 **Note:** the tool runs in interactive mode by default. Use the `--non-interactive` flag
 if running in an automated environment.
 
+### Authentication
+
+`ipatool auth login` supports password authentication with a six-digit verification
+code when required. Experimental physical security-key login requires macOS and
+libfido2, and uses the built-in local Anisette service by default (with an
+optional `--anisette-url` override):
+
+```shell
+brew install libfido2
+ipatool auth login --security-key --email you@example.com
+```
+
+Enter your password at the hidden prompt, then insert and touch one enrolled USB
+key. Enter its local PIN if requested; Ctrl-C cancels. The password and PET are
+not saved. Use the same build for subsequent commands; expired sessions require
+another interactive security-key login, including when using MCP.
+
+See [setup, protocol and verification limits](docs/apple-security-keys.md).
+
 ### MCP tools
 
 Run `ipatool auth login` in a terminal, then configure your MCP client to launch the stdio server:

@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/byteness/keyring"
-	cookiejar "github.com/juju/persistent-cookiejar"
 	"github.com/majd/ipatool/v2/pkg/appstore"
 	"github.com/majd/ipatool/v2/pkg/http"
 	"github.com/majd/ipatool/v2/pkg/keychain"
@@ -53,9 +52,7 @@ func newLogger(format OutputFormat, verbose bool) log.Logger {
 
 // newCookieJar returns a new cookie jar instance.
 func newCookieJar(stateDirectory string) http.CookieJar {
-	return util.Must(cookiejar.New(&cookiejar.Options{
-		Filename: filepath.Join(stateDirectory, CookieJarFileName),
-	}))
+	return util.Must(http.NewPersistentCookieJar(filepath.Join(stateDirectory, CookieJarFileName)))
 }
 
 // newKeychain returns a new keychain instance.

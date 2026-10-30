@@ -3,6 +3,8 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"os"
+	"os/signal"
 	"time"
 
 	"github.com/avast/retry-go"
@@ -24,13 +26,27 @@ func authCmd() *cobra.Command {
 }
 
 func loginCmd() *cobra.Command {
-	var email, password, authCode string
+	var email, password, authCode, anisetteURL string
+
+	var securityKey bool
 
 	cmd := &cobra.Command{
 		Use:   "login",
 		Short: "Login to the App Store",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			interactive := cmd.Context().Value(interactiveKey).(bool)
+
+			if anisetteURL != "" && !securityKey {
+				return errors.New("--anisette-url requires --security-key")
+			}
+
+			if securityKey && !interactive {
+				return errors.New("security-key login requires interactive mode")
+			}
+
+			if securityKey && authCode != "" {
+				return errors.New("--security-key and --auth-code are mutually exclusive")
+			}
 
 			if email == "" && !interactive {
 				return errors.New("an Apple ID is required when not running in interactive mode; use the \"--email\" flag")
@@ -58,6 +74,20 @@ func loginCmd() *cobra.Command {
 
 			dependencies.Logger.Log().Msg("preparing authentication; the first login may take a few minutes")
 
+			var interaction *appstore.SecurityKeyInteraction
+
+			if securityKey {
+				ctx, cancel := signal.NotifyContext(cmd.Context(), os.Interrupt)
+				defer cancel()
+
+				interaction = &appstore.SecurityKeyInteraction{
+					AnisetteURL: anisetteURL,
+					Context:     ctx,
+					PIN:         readPIN,
+					Status:      func(message string) { dependencies.Logger.Log().Msg(message) },
+				}
+			}
+
 			var lastErr error
 
 			// nolint:wrapcheck
@@ -76,9 +106,11 @@ func loginCmd() *cobra.Command {
 					Msg("logging in")
 
 				output, err := dependencies.AppStore.Login(appstore.LoginInput{
-					Email:    email,
-					Password: password,
-					AuthCode: authCode,
+					SecurityKey:            securityKey,
+					SecurityKeyInteraction: interaction,
+					Email:                  email,
+					Password:               password,
+					AuthCode:               authCode,
 				})
 				if err != nil {
 					if errors.Is(err, appstore.ErrAuthCodeRequired) && !interactive {
@@ -113,6 +145,8 @@ func loginCmd() *cobra.Command {
 
 	cmd.Flags().StringVarP(&email, "email", "e", "", "Apple ID email address or phone number (required)")
 	cmd.Flags().StringVarP(&password, "password", "p", "", "password for the Apple ID (required)")
+	cmd.Flags().StringVar(&anisetteURL, "anisette-url", "", "optional anisette-v1 service URL (HTTPS or local HTTP) for --security-key (defaults to built-in local Anisette)")
+	cmd.Flags().BoolVar(&securityKey, "security-key", false, "experimental physical security-key login (macOS, USB, libfido2)")
 	cmd.Flags().StringVar(&authCode, "auth-code", "", "2FA code for the Apple ID")
 
 	return cmd

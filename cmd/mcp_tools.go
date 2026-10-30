@@ -111,7 +111,7 @@ func withMCPAccount[Out any](ctx context.Context, store appstore.AppStore, opera
 		return zero, fmt.Errorf("tool call canceled: %w", err)
 	}
 
-	login, err := store.Login(appstore.LoginInput{Email: info.Account.Email, Password: info.Account.Password})
+	login, err := store.Login(appstore.LoginInput{Email: info.Account.Email, Password: info.Account.Password, SecurityKey: info.Account.SecurityKey})
 	if err != nil {
 		return zero, fmt.Errorf("session refresh failed; run 'ipatool auth login' outside MCP: %w", err)
 	}

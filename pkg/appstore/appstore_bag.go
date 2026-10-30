@@ -1,6 +1,7 @@
 package appstore
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	gohttp "net/http"
@@ -30,11 +31,11 @@ func (t *appstore) Bag(input BagInput) (BagOutput, error) {
 		return BagOutput{}, err
 	}
 
-	return t.bag(guid)
+	return t.bag(context.Background(), guid)
 }
 
-func (t *appstore) bag(guid string) (BagOutput, error) {
-	bag, err := t.fetchURLBag(guid)
+func (t *appstore) bag(ctx context.Context, guid string) (BagOutput, error) {
+	bag, err := t.fetchURLBag(ctx, guid)
 	if err != nil {
 		return BagOutput{}, err
 	}
@@ -71,8 +72,14 @@ func (t *appstore) bag(guid string) (BagOutput, error) {
 }
 
 // Download endpoints do not require the authentication-specific SAP configuration.
-func (t *appstore) fetchURLBag(guid string) (urlBag, error) {
-	res, err := t.bagClient.Send(t.bagRequest(guid))
+func (t *appstore) fetchURLBag(ctx context.Context, guid string) (urlBag, error) {
+	if err := ctx.Err(); err != nil {
+		return urlBag{}, fmt.Errorf("fetch bag: %w", err)
+	}
+
+	request := t.bagRequest(guid)
+	request.Context = ctx
+	res, err := t.bagClient.Send(request)
 	if err != nil {
 		return urlBag{}, fmt.Errorf("failed to send http request: %w", err)
 	}

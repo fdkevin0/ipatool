@@ -1,6 +1,7 @@
 package appstore
 
 type Account struct {
+	SecurityKey         bool   `json:"securityKey,omitempty"`
 	Email               string `json:"email,omitempty"`
 	PasswordToken       string `json:"passwordToken,omitempty"`
 	DirectoryServicesID string `json:"directoryServicesIdentifier,omitempty"`

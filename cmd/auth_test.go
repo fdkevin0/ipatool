@@ -34,6 +34,48 @@ var _ = Describe("Login command", func() {
 		Entry("missing password", []string{"--email", "user@example.com"}, "password is required when not running in interactive mode; use the \"--password\" flag"),
 	)
 
+	It("rejects unattended security-key login before prompting or calling the store", func() {
+		command := loginCmd()
+		command.SetContext(context.WithValue(context.Background(), interactiveKey, false))
+		command.SetArgs([]string{"--security-key"})
+
+		Expect(command.Execute()).To(MatchError("security-key login requires interactive mode"))
+		Expect(store.loginCalls).To(BeZero())
+	})
+
+	It("passes security-key interaction to the login implementation without requiring --anisette-url", func() {
+		command := loginCmd()
+		command.SetContext(context.WithValue(context.Background(), interactiveKey, true))
+		command.SetArgs([]string{"--security-key", "--email", "test@example.test", "--password", "secret"})
+
+		Expect(command.Execute()).To(Succeed())
+		Expect(store.input.SecurityKey).To(BeTrue())
+		Expect(store.input.SecurityKeyInteraction).NotTo(BeNil())
+		Expect(store.input.SecurityKeyInteraction.PIN).NotTo(BeNil())
+		Expect(store.input.SecurityKeyInteraction.AnisetteURL).To(BeEmpty())
+	})
+
+	It("passes an explicit --anisette-url when provided with --security-key", func() {
+		command := loginCmd()
+		command.SetContext(context.WithValue(context.Background(), interactiveKey, true))
+		command.SetArgs([]string{"--security-key", "--anisette-url", "http://127.0.0.1:6969", "--email", "test@example.test", "--password", "secret"})
+
+		Expect(command.Execute()).To(Succeed())
+		Expect(store.input.SecurityKey).To(BeTrue())
+		Expect(store.input.SecurityKeyInteraction).NotTo(BeNil())
+		Expect(store.input.SecurityKeyInteraction.PIN).NotTo(BeNil())
+		Expect(store.input.SecurityKeyInteraction.AnisetteURL).To(Equal("http://127.0.0.1:6969"))
+	})
+
+	It("rejects --anisette-url without --security-key", func() {
+		command := loginCmd()
+		command.SetContext(context.WithValue(context.Background(), interactiveKey, true))
+		command.SetArgs([]string{"--anisette-url", "http://127.0.0.1:6969", "--email", "test@example.test", "--password", "secret"})
+
+		Expect(command.Execute()).To(MatchError("--anisette-url requires --security-key"))
+		Expect(store.loginCalls).To(BeZero())
+	})
+
 	DescribeTable("uses supplied credentials", func(interactive bool, appleID string) {
 		cmd := loginCmd()
 		cmd.SetContext(context.WithValue(context.Background(), interactiveKey, interactive))

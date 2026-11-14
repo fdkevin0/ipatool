@@ -11,6 +11,7 @@ require (
 	github.com/deploymenttheory/go-macos-pkg v0.3.0
 	github.com/ebitengine/purego v0.10.2
 	github.com/go-compressions/lzfse v0.3.0
+	github.com/juju/go4 v0.0.0-20160222163258-40d72ab9641a
 	github.com/juju/persistent-cookiejar v1.0.0
 	github.com/klauspost/compress v1.18.7
 	github.com/majd/go-apfs v1.0.29
@@ -56,7 +57,6 @@ require (
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/ianlancetaylor/demangle v0.0.0-20251118225945-96ee0021ea0f // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/juju/go4 v0.0.0-20160222163258-40d72ab9641a // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.22 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect

@@ -44,6 +44,7 @@ type AppStore interface {
 
 type appstore struct {
 	keychain               keychain.Keychain
+	cookieJar              http.CookieJar
 	loginClient            http.Client[loginResult]
 	searchClient           http.Client[searchResult]
 	purchaseClient         http.Client[purchaseResult]
@@ -67,6 +68,7 @@ type appstore struct {
 	authStateMu            sync.Mutex
 	anisetteState          []byte
 	authenticationHeaders  gohttp.Header
+	securityKeyStoreAuth   securityKeyStoreAuth
 }
 
 type Args struct {
@@ -98,6 +100,7 @@ func NewAppStore(args Args) AppStore {
 
 	return &appstore{
 		keychain:            args.Keychain,
+		cookieJar:           args.CookieJar,
 		loginClient:         http.NewClient[loginResult](http.Args{CookieJar: args.CookieJar, Authentication: true, Executor: backend.Client("authenticate")}),
 		searchClient:        http.NewClient[searchResult](clientArgs),
 		purchaseClient:      http.NewClient[purchaseResult](http.Args{CookieJar: args.CookieJar, Executor: backend.Client("purchase")}),

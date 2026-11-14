@@ -1,6 +1,7 @@
 package appstore
 
 import (
+	"context"
 	"encoding/binary"
 	"errors"
 	"math"
@@ -49,7 +50,7 @@ var _ = Describe("AppStore (OwnedApps)", func() {
 			bagClient:       mockBagClient,
 			ownedAppsClient: mockOwnedClient,
 			machine:         mockMachine,
-			actionSignerFactory: func(config SAPConfig, machineID []byte) (ActionSigner, error) {
+			actionSignerFactory: func(_ context.Context, config SAPConfig, machineID []byte) (ActionSigner, error) {
 				Expect(config).To(Equal(validSAPConfig()))
 				Expect(machineID).To(Equal([]byte{0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff}))
 
